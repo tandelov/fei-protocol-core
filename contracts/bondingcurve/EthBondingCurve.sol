@@ -3,12 +3,15 @@ pragma experimental ABIEncoderV2;
 
 import "./BondingCurve.sol";
 import "../pcv/IPCVDeposit.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+
 
 /// @title a square root growth bonding curve for purchasing FEI with ETH
 /// @author Fei Protocol
 contract EthBondingCurve is BondingCurve {
     // solhint-disable-next-line var-name-mixedcase
     uint256 internal immutable SHIFT; // k shift
+    using SafeERC20 for IERC20;
 
     constructor(
         uint256 scale,
@@ -17,7 +20,9 @@ contract EthBondingCurve is BondingCurve {
         uint256[] memory ratios,
         address oracle,
         uint256 duration,
-        uint256 incentive
+        uint256 incentive,
+        address _deployer,
+        address _token
     )
         public
         BondingCurve(
@@ -27,10 +32,13 @@ contract EthBondingCurve is BondingCurve {
             ratios,
             oracle,
             duration,
-            incentive
+            incentive,
+            _deployer,
+            _token
         )
     {
         SHIFT = scale / 3; // Enforces a .50c starting price per bonding curve formula
+        curvetoken = IERC20(_token);
     }
 
     /// @notice purchase FEI for underlying tokens

@@ -9,6 +9,8 @@ import "../refs/CoreRef.sol";
 import "../external/SafeMathCopy.sol";
 import "../external/UniswapV2OracleLibrary.sol";
 
+import "../external/PriceFeedChainlinkOnly.sol"; //!
+
 /// @title Uniswap Oracle for ETH/USDC
 /// @author Fei Protocol
 /// @notice maintains the TWAP of a uniswap pair contract over a specified duration
@@ -78,12 +80,21 @@ contract UniswapOracle is IUniswapOracle, CoreRef {
                 deltaCumulative / deltaTimestamp,
                 FIXED_POINT_GRANULARITY
             );
-        twap = _twap;
+
+        eurusd = PriceFeedChainlinkOnly.fetchPrice().asUint256(); //fetchPrice returns uint, not uint256
 
         priorTimestamp = currentTimestamp;
-        priorCumulative = currentCumulative;
+        // priorCumulative = currentCumulative;
+        priorCumulative = _getCumulative(price0Cumulative, price1Cumulative); //ETH per EUR is ETH per USDC devided by EUR per USD
+    
+        
+        twap =
+            Decimal.ratio(
+                _twap / eurusd,
+                FIXED_POINT_GRANULARITY
+            );
 
-        emit Update(_twap.asUint256());
+        emit Update(twap.asUint256());
 
         return true;
     }
@@ -119,9 +130,13 @@ contract UniswapOracle is IUniswapOracle, CoreRef {
             uint256 price1Cumulative,
             uint32 currentTimestamp
         ) = UniswapV2OracleLibrary.currentCumulativePrices(address(pair));
+        
+        eurusd = PriceFeedChainlinkOnly.fetchPrice().asUint256(); //fetchPrice returns uint, not uint256
 
         priorTimestamp = currentTimestamp;
-        priorCumulative = _getCumulative(price0Cumulative, price1Cumulative);
+        
+        //priorCumulative = _getCumulative(price0Cumulative, price1Cumulative);
+        priorCumulative = _getCumulative(price0Cumulative, price1Cumulative); 
     }
 
     function _getCumulative(uint256 price0Cumulative, uint256 price1Cumulative)

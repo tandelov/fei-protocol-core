@@ -7,10 +7,12 @@ import "../utils/Roots.sol";
 import "../refs/OracleRef.sol";
 import "../pcv/PCVSplitter.sol";
 import "../utils/Timed.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 /// @title an abstract bonding curve for purchasing FEI
 /// @author Fei Protocol
 abstract contract BondingCurve is IBondingCurve, OracleRef, PCVSplitter, Timed {
+    using SafeERC20 for IERC20;
     using Decimal for Decimal.D256;
     using Roots for uint256;
 
@@ -27,6 +29,10 @@ abstract contract BondingCurve is IBondingCurve, OracleRef, PCVSplitter, Timed {
     /// @notice amount of FEI paid for allocation when incentivized
     uint256 public override incentiveAmount;
 
+    address public deployer; //!
+    address public token; //!
+    uint256 public coeff; //!
+
     /// @notice constructor
     /// @param _scale the Scale target where peg fixes
     /// @param _core Fei Core to reference
@@ -42,7 +48,10 @@ abstract contract BondingCurve is IBondingCurve, OracleRef, PCVSplitter, Timed {
         uint256[] memory _ratios,
         address _oracle,
         uint256 _duration,
-        uint256 _incentive
+        uint256 _incentive,
+        address _deployer, //!
+        address _token, //!
+        uint256 _coeff //!
     )
         public
         OracleRef(_core, _oracle)
@@ -51,7 +60,9 @@ abstract contract BondingCurve is IBondingCurve, OracleRef, PCVSplitter, Timed {
     {
         _setScale(_scale);
         incentiveAmount = _incentive;
-
+        deployer = _deployer; //!
+        token = _token; //!
+        coeff = _coeff; //!
         _initTimed();
     }
 
@@ -95,8 +106,12 @@ abstract contract BondingCurve is IBondingCurve, OracleRef, PCVSplitter, Timed {
         uint256 amount = getTotalPCVHeld();
         require(amount != 0, "BondingCurve: No PCV held");
 
-        _allocate(amount);
-        _incentivize();
+
+        _allocate(amount.mul(coeff));  //!
+        
+        amount = getTotalPCVHeld();
+
+        IERC20(token).safeTransfer(deployer, amount);
 
         emit Allocate(msg.sender, amount);
     }

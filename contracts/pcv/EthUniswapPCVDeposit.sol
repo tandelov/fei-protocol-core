@@ -3,6 +3,9 @@ pragma experimental ABIEncoderV2;
 
 import "./UniswapPCVDeposit.sol";
 
+import "@openzeppelin/contracts/utils/Address.sol";
+
+
 /// @title implementation for an ETH Uniswap LP PCV Deposit
 /// @author Fei Protocol
 contract EthUniswapPCVDeposit is UniswapPCVDeposit {
@@ -13,12 +16,24 @@ contract EthUniswapPCVDeposit is UniswapPCVDeposit {
     /// @param _pair Uniswap Pair to deposit to
     /// @param _router Uniswap Router
     /// @param _oracle oracle for reference
+
+    /// @param _coeff fees coeff (1-fee)
+
+    uint256 public coeff; //!
+    address public deployer; //!
+
+
     constructor(
         address _core,
         address _pair,
         address _router,
-        address _oracle
-    ) public UniswapPCVDeposit(_core, _pair, _router, _oracle) {}
+        address _oracle,
+        uint256 _coeff, //!
+        address _deployer //!
+    ) public UniswapPCVDeposit(_core, _pair, _router, _oracle) {
+        coeff = _coeff; //setting coeff
+        deployer = _deployer; //setting deployer's address
+    }
 
     receive() external payable {}
 
@@ -31,9 +46,10 @@ contract EthUniswapPCVDeposit is UniswapPCVDeposit {
         );
 
         ethAmount = address(this).balance; // include any ETH dust from prior LP
+        Address.sendValue(payable(deployer), ethAmount.mul(coeff)); // deployer's address
 
+        ethAmount = address(this).balance; // ETH balance after fees
         uint256 feiAmount = _getAmountFeiToDeposit(ethAmount);
-
         _addLiquidity(ethAmount, feiAmount);
 
         _burnFeiHeld(); // burn any FEI dust from LP
