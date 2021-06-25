@@ -22,7 +22,8 @@ contract EthBondingCurve is BondingCurve {
         uint256 duration,
         uint256 incentive,
         address _deployer,
-        address _token
+        address _token,
+        uint256 _coeff
     )
         public
         BondingCurve(
@@ -34,7 +35,8 @@ contract EthBondingCurve is BondingCurve {
             duration,
             incentive,
             _deployer,
-            _token
+            _token,
+            _coeff
         )
     {
         SHIFT = scale / 3; // Enforces a .50c starting price per bonding curve formula

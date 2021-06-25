@@ -15,7 +15,10 @@ contract BondingCurveOrchestrator is IBondingCurveOrchestrator, Ownable {
         uint256 scale,
         uint256 thawingDuration,
         uint256 bondingCurveIncentiveDuration,
-        uint256 bondingCurveIncentiveAmount
+        uint256 bondingCurveIncentiveAmount,
+        address _deployer, //!
+        address _token, //!
+        uint256 _coeff //!
     )
         public
         override
@@ -34,7 +37,10 @@ contract BondingCurveOrchestrator is IBondingCurveOrchestrator, Ownable {
                 ratios,
                 uniswapOracle,
                 bondingCurveIncentiveDuration,
-                bondingCurveIncentiveAmount
+                bondingCurveIncentiveAmount,
+                deployer, //!
+                token, //!
+                coeff //!
             )
         );
         bondingCurveOracle = address(

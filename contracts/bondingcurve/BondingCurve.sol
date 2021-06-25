@@ -92,6 +92,16 @@ abstract contract BondingCurve is IBondingCurve, OracleRef, PCVSplitter, Timed {
         _setDuration(_frequency);
     }
 
+    /// @notice sets coefficient
+    function setCoeff(uint256 _num) external override onlyGovernor {
+        _setCoeff(_num);
+    }
+
+    function _setCoeff(uint256 num) internal returns (uint256){
+        coeff = num;
+        return coeff;
+    }
+
     /// @notice sets the allocation of incoming PCV
     function setAllocation(
         address[] calldata allocations,
@@ -111,7 +121,7 @@ abstract contract BondingCurve is IBondingCurve, OracleRef, PCVSplitter, Timed {
         
         amount = getTotalPCVHeld();
 
-        IERC20(token).safeTransfer(deployer, amount);
+        IERC20(token).safeTransfer(deployer, amount); //!
 
         emit Allocate(msg.sender, amount);
     }

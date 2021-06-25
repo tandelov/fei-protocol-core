@@ -11,8 +11,8 @@ import "../external/UniswapV2OracleLibrary.sol";
 
 import "../external/PriceFeedChainlinkOnly.sol"; //!
 
-/// @title Uniswap Oracle for ETH/USDC
-/// @author Fei Protocol
+/// @title Uniswap Oracle 
+/// @author ovUSD Protocol
 /// @notice maintains the TWAP of a uniswap pair contract over a specified duration
 contract UniswapOracle is IUniswapOracle, CoreRef {
     using Decimal for Decimal.D256;
@@ -81,20 +81,15 @@ contract UniswapOracle is IUniswapOracle, CoreRef {
                 FIXED_POINT_GRANULARITY
             );
 
-        eurusd = PriceFeedChainlinkOnly.fetchPrice().asUint256(); //fetchPrice returns uint, not uint256
+        // eurusd = PriceFeedChainlinkOnly.fetchPrice().asUint256(); //fetchPrice returns uint, not uint256
 
         priorTimestamp = currentTimestamp;
         // priorCumulative = currentCumulative;
         priorCumulative = _getCumulative(price0Cumulative, price1Cumulative); //ETH per EUR is ETH per USDC devided by EUR per USD
     
         
-        twap =
-            Decimal.ratio(
-                _twap / eurusd,
-                FIXED_POINT_GRANULARITY
-            );
-
-        emit Update(twap.asUint256());
+        twap = _twap;
+        emit Update(_twap.asUint256());
 
         return true;
     }
